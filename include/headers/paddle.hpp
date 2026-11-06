@@ -1,9 +1,8 @@
 #pragma once
 #include "raylib.h"
 
-class Paddle
+struct Paddle
 {
-public:
 	float paddleWidth = 130.0f;
 	float paddleHeight = 20.0f;
 	Vector2 paddlePosition = { ((float)GetScreenWidth() / 2.0f) - (paddleWidth / 2.0f), ((float)GetScreenHeight()) - paddleHeight - 10.0f };
