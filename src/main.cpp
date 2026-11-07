@@ -135,14 +135,13 @@ int main()
 			if (allDestroyed)
 			{
 				active = false;
-				
-				brick.clear();
+			
 			}
 
 		}
 		else
 		{
-
+			brick.clear();
 			std::cout << "Draw text" << std::endl;
 			const char* text = "Press the up arrow key to start the game";
 			int fontSize = 25;
