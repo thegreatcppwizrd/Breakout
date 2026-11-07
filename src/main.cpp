@@ -107,7 +107,6 @@ int main()
 
 	bool active = false;
 
-	PlaceBricks(bricks);
 
 
 	while (!WindowShouldClose())
@@ -116,11 +115,6 @@ int main()
 		ClearBackground(BLACK);
 		DrawBrick();
 
-		if (IsKeyPressed(KEY_UP))
-		{
-			active = true;
-			std::cout << "Start" << std::endl;
-		}
 		 
 		if (active)
 		{
@@ -141,7 +135,7 @@ int main()
 			if (allDestroyed)
 			{
 				active = false;
-				PlaceBricks(bricks);
+				
 				brick.clear();
 			}
 
@@ -159,6 +153,13 @@ int main()
 				fontSize,
 				WHITE
 			);
+
+			if (IsKeyPressed(KEY_UP))
+			{
+				PlaceBricks(bricks);
+				active = true;
+				std::cout << "Start" << std::endl;
+			}
 		}
 
 
