@@ -1,12 +1,16 @@
 #include "headers/paddle.hpp"
 #include "headers/bricks.hpp"
+#include "headers/ball.hpp"
 #include <iostream>
 
 void DrawBrick()
 {
 	for (auto& i : brick)	
 	{
-		DrawRectangleRounded(i.brickRectangle, 0.5, 0, i.color);
+		if (i.active)
+		{
+			DrawRectangleRounded(i.brickRectangle, 0.5, 0, i.color);
+		}
 	}
 }
  
@@ -63,6 +67,9 @@ int main()
 
 	Paddle paddle;
 	Bricks bricks;
+	Ball ball;
+
+	bool active = false;
 
 	PlaceBricks(bricks);
 
@@ -71,13 +78,39 @@ int main()
 	{
 		BeginDrawing();
 
-		ClearBackground(BLACK);
-		
-
 		DrawBrick();
-		paddle.Draw();
-		paddle.Update();
 
+		if (IsKeyPressed(KEY_UP))
+		{
+			active = true;
+			std::cout << "Start" << std::endl;
+		}
+		 
+		if (active)
+		{
+			ball.Update(bricks, paddle);
+			paddle.Update();
+
+		}
+		else
+		{
+			std::cout << "Draw text" << std::endl;
+			const char* text = "Press the up arrow key to start the game";
+			int fontSize = 25;
+			DrawText(
+				text,
+				ball.position.x - MeasureText(text, fontSize) / 2,
+				ball.position.y - 50 - ball.radius,
+				fontSize,
+				WHITE
+			);
+		}
+
+		ClearBackground(BLACK);
+
+
+		paddle.Draw();
+		ball.Draw();
 		// std::cout << paddle.paddlePosition.x << paddle.paddlePosition.y << std::endl;
 
 		EndDrawing();
