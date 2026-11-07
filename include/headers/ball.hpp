@@ -5,7 +5,7 @@ struct Ball
 	Color color = WHITE;
 	float radius = 15.0f;
 	Vector2 position = { GetScreenWidth() / 2.0f, GetScreenHeight() - radius - 10.0f - 30.0f};
-	Vector2 direction = { 6.0f, -4.8f };
+	Vector2 direction = { 600.0f, -480.0f };
 
 	void Draw()
 	{
@@ -19,8 +19,8 @@ struct Ball
 
 	void Update(Bricks& bricks, Paddle& paddle, Sound& hit, bool& active)
 	{
-		position.x += direction.x;
-		position.y += direction.y;
+		position.x += direction.x * GetFrameTime();
+		position.y += direction.y * GetFrameTime();
 		std::cout << direction.x << ", " << direction.y << std::endl;
 
 		if (position.x <= 0 + radius || position.x >= GetScreenWidth() - radius) { direction.x *=  -1; PlaySound(hit); }
@@ -38,7 +38,9 @@ struct Ball
 
 			float hitPosition = (position.x - paddleCenter) / (paddle.paddleWidth / 2.0f);
 
-			direction.x = hitPosition * 15;
+			float totalSpeed = 768.0f;
+
+			direction.x = hitPosition * totalSpeed * 0.8f;
 			direction.y *= -1;
 			direction.x *= -1;
 			position.y = paddle.paddlePosition.y - radius;

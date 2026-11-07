@@ -6,7 +6,7 @@ struct Paddle
 	float paddleWidth = 130.0f;
 	float paddleHeight = 20.0f;
 	Vector2 paddlePosition = { ((float)GetScreenWidth() / 2.0f) - (paddleWidth / 2.0f), ((float)GetScreenHeight()) - paddleHeight - 10.0f };
-	int speed = 9;
+	int speed = 800;
 	int padding = 12;
 
 	Rectangle paddle = { paddlePosition.x, paddlePosition.y, paddleWidth, paddleHeight };
@@ -19,8 +19,8 @@ struct Paddle
 
 	void Update()
 	{
-		if (IsKeyDown(KEY_RIGHT)) { paddlePosition.x += speed; }
-		if (IsKeyDown(KEY_LEFT)) { paddlePosition.x -= speed; }
+		if (IsKeyDown(KEY_RIGHT)) { paddlePosition.x += speed * GetFrameTime(); }
+		if (IsKeyDown(KEY_LEFT)) { paddlePosition.x -= speed * GetFrameTime(); }
 
 		if (paddlePosition.x <= padding) { paddlePosition.x = padding; }
 		if (paddlePosition.x >= GetScreenWidth() - padding - paddleWidth) { paddlePosition.x = GetScreenWidth() - paddleWidth - padding; }
