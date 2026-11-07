@@ -135,7 +135,7 @@ int main()
 			if (allDestroyed)
 			{
 				active = false;
-			
+				ball.position = { GetScreenWidth() / 2.0f, GetScreenHeight() - ball.radius - 10.0f - 30.0f };
 			}
 
 		}
