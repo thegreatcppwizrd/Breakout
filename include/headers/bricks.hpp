@@ -10,7 +10,7 @@ struct Bricks
 	float padding = 12.0f;
 	Vector2 position;
 	Rectangle brickRectangle;
-	bool active;
+	bool active = true;
 
 };
 

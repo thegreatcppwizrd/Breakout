@@ -6,7 +6,7 @@ struct Paddle
 	float paddleWidth = 130.0f;
 	float paddleHeight = 20.0f;
 	Vector2 paddlePosition = { ((float)GetScreenWidth() / 2.0f) - (paddleWidth / 2.0f), ((float)GetScreenHeight()) - paddleHeight - 10.0f };
-	int speed = 7;
+	int speed = 8;
 	int padding = 12;
 
 	Rectangle paddle = { paddlePosition.x, paddlePosition.y, paddleWidth, paddleHeight };

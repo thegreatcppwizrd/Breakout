@@ -2,6 +2,40 @@
 #include "headers/bricks.hpp"
 #include "headers/ball.hpp"
 #include <iostream>
+#include <algorithm>
+
+void UpdateBrick(Ball& ball, Sound& hit, Paddle& paddle)
+{
+	for (auto& i : brick)
+	{
+		if (
+			ball.position.x + ball.radius >= i.position.x &&
+			ball.position.x - ball.radius <= i.position.x + i.width &&
+
+			ball.position.y + ball.radius >= i.position.y &&
+			ball.position.y - ball.radius <= i.position.y + i.height &&
+
+			i.active
+			)
+		{
+			if (ball.direction.y < 0)
+			{
+				ball.position.y = i.position.y + i.height + ball.radius;
+			}
+			else if (ball.direction.y > 0)
+			{
+				ball.position.y = i.position.y - ball.radius;
+			}
+			ball.direction.y *= -1;
+
+			std::cout << "Hit brick" << std::endl;
+			PlaySound(hit);
+			i.active = false;
+
+			break; 
+		}
+	}
+}
 
 void DrawBrick()
 {
@@ -54,7 +88,6 @@ void PlaceBricks(Bricks& bricks)
 				bricks.active
 				});
 
-			brick[j].active = true;
 
 		}
 	}
@@ -64,6 +97,9 @@ int main()
 {
 	InitWindow(1024, 768, "Breakout");
 	SetTargetFPS(60);
+	InitAudioDevice();
+
+	Sound hit = LoadSound(RESOURCES_PATH "hit.wav");
 
 	Paddle paddle;
 	Bricks bricks;
@@ -77,7 +113,7 @@ int main()
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
-
+		ClearBackground(BLACK);
 		DrawBrick();
 
 		if (IsKeyPressed(KEY_UP))
@@ -88,12 +124,31 @@ int main()
 		 
 		if (active)
 		{
-			ball.Update(bricks, paddle);
+			ball.Update(bricks, paddle, hit, active);
 			paddle.Update();
+			UpdateBrick(ball, hit, paddle);
+
+			bool allDestroyed = std::none_of(
+				brick.begin(),
+				brick.end(),
+				[](const Bricks& b)
+				{
+					return b.active;
+				}
+
+			);
+
+			if (allDestroyed)
+			{
+				active = false;
+				PlaceBricks(bricks);
+				brick.clear();
+			}
 
 		}
 		else
 		{
+
 			std::cout << "Draw text" << std::endl;
 			const char* text = "Press the up arrow key to start the game";
 			int fontSize = 25;
@@ -106,7 +161,7 @@ int main()
 			);
 		}
 
-		ClearBackground(BLACK);
+
 
 
 		paddle.Draw();
