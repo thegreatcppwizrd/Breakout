@@ -11,7 +11,8 @@ struct Bricks
 	Vector2 position;
 	Rectangle brickRectangle;
 	bool active = true;
+	bool ballPowerup = false;
+	bool air = false;
 
 };
 
-std::vector<Bricks> brick;

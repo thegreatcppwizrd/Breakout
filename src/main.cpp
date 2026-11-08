@@ -4,38 +4,69 @@
 #include <iostream>
 #include <algorithm>
 
-void UpdateBrick(Ball& ball, Sound& hit, Paddle& paddle)
+void DrawBall(Bricks& bricks, Paddle& paddle, Sound& hit, bool& active, Balls& balls);
+void UpdateBall(Bricks& bricks, Paddle& paddle, Sound& hit, bool& active, Balls& balls);
+
+std::vector<Bricks> brick;
+std::vector<Balls> ball;
+
+void UpdateBrick(Balls& balls, Sound& hit, Paddle& paddle)
 {
 	for (auto& i : brick)
 	{
-		if (
-			ball.position.x + ball.radius >= i.position.x &&
-			ball.position.x - ball.radius <= i.position.x + i.width &&
-
-			ball.position.y + ball.radius >= i.position.y &&
-			ball.position.y - ball.radius <= i.position.y + i.height &&
-
-			i.active
-			)
+		if (!i.air)
 		{
-			if (ball.direction.y < 0)
+			for (auto& j : ball)
 			{
-				ball.position.y = i.position.y + i.height + ball.radius;
-			}
-			else if (ball.direction.y > 0)
-			{
-				ball.position.y = i.position.y - ball.radius;
-			}
-			ball.direction.y *= -1;
+				if (!i.active) continue;
 
-			std::cout << "Hit brick" << std::endl;
-			PlaySound(hit);
-			i.active = false;
+				if (
+					j.position.x + j.radius >= i.position.x &&
+					j.position.x - j.radius <= i.position.x + i.width &&
 
-			break; 
+					j.position.y + j.radius >= i.position.y &&
+					j.position.y - j.radius <= i.position.y + i.height
+					)
+				{
+
+					if (j.direction.y < 0)
+					{
+						j.position.y = i.position.y + i.height + j.radius;
+					}
+					else if (j.direction.y > 0)
+					{
+						j.position.y = i.position.y - j.radius;
+					}
+
+					j.direction.y *= -1;
+
+					std::cout << "Hit brick" << std::endl;
+					PlaySound(hit);
+					i.active = false;
+
+					if (i.ballPowerup)
+					{
+
+						ball.push_back({
+							j.color,
+							j.radius,
+							{ i.position.x + i.width / 2.0f, i.position.y + i.height / 2.0f },
+							{
+								j.direction.x,
+								j.direction.y
+							}
+							});
+					}
+
+
+					break;
+
+				}
+			}
 		}
 	}
 }
+
 
 void DrawBrick()
 {
@@ -43,7 +74,22 @@ void DrawBrick()
 	{
 		if (i.active)
 		{
-			DrawRectangleRounded(i.brickRectangle, 0.5, 0, i.color);
+			if (!i.air)
+			{
+				DrawRectangleRounded(i.brickRectangle, 0.5, 0, i.color);
+			}
+
+			if (i.ballPowerup)
+			{
+				DrawCircle(
+					i.position.x + i.width / 2,
+					i.position.y + i.height / 2,
+					i.height / 2 - 5,
+					{ 0, 0, 0, 80 }
+					);
+
+				// TraceLog(LOG_INFO, "Ball Pos: %f, %f", i.position.x + i.width / 2, i.position.y + i.height / 2);
+			}
 		}
 	}
 }
@@ -51,7 +97,7 @@ void DrawBrick()
 void PlaceBricks(Bricks& bricks)
 {
 	int ammountX = GetScreenWidth() / (bricks.width + bricks.padding);
-	int ammountY = 7;
+	int ammountY = 10;
 
 	float totalWidth = ammountX * bricks.width
 		+ (ammountX - 1) * bricks.padding;
@@ -68,7 +114,8 @@ void PlaceBricks(Bricks& bricks)
 		    startY + (bricks.padding + bricks.height) * i
 			};
 
-			Color pallet[7] = {
+
+			Color pallet[10] = {
 				RED,
 				YELLOW,
 				ORANGE,
@@ -76,6 +123,9 @@ void PlaceBricks(Bricks& bricks)
 				DARKBLUE,
 				GREEN,
 				DARKGREEN,
+				PINK,
+				MAGENTA,
+				VIOLET
 			};
 
 			brick.push_back({
@@ -88,8 +138,15 @@ void PlaceBricks(Bricks& bricks)
 				bricks.active
 				});
 
+			brick.back().ballPowerup = GetRandomValue(1, 5) == 1 ? true : false;
+			brick.back().air = (i + j) % GetRandomValue(1, 7) == 0 ? true : false;
 
+			if (brick.back().air)
+			{
+				brick.pop_back();
+			}
 		}
+
 	}
 }
 
@@ -103,14 +160,21 @@ int main()
 
 	Paddle paddle;
 	Bricks bricks;
-	Ball ball;
+	Balls balls;
 
 	bool active = false;
 
-
+	ball.push_back({
+		balls.color,
+		balls.radius,
+		balls.position,
+		balls.direction
+		});
 
 	while (!WindowShouldClose())
 	{
+
+
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawBrick();
@@ -118,9 +182,10 @@ int main()
 		 
 		if (active)
 		{
-			ball.Update(bricks, paddle, hit, active);
+			DrawBall(bricks, paddle, hit, active, balls);
+			UpdateBall(bricks, paddle, hit, active, balls);
 			paddle.Update();
-			UpdateBrick(ball, hit, paddle);
+			UpdateBrick(balls, hit, paddle);
 
 			bool allDestroyed = std::none_of(
 				brick.begin(),
@@ -132,12 +197,20 @@ int main()
 
 			);
 
+
+
 			if (allDestroyed)
 			{
 				active = false;
-				ball.position = { GetScreenWidth() / 2.0f, GetScreenHeight() - ball.radius - 10.0f - 30.0f };
+				paddle.paddlePosition = { ((float)GetScreenWidth() / 2.0f) - (paddle.paddleWidth / 2.0f), ((float)GetScreenHeight()) - paddle.paddleHeight - 10.0f };
+
+				for (size_t i = 0; i < ball.size(); ) {
+
+					ball.erase(ball.begin() + i);
+				}
 			}
 
+			
 		}
 		else
 		{
@@ -147,10 +220,12 @@ int main()
 			int fontSize = 25;
 			DrawText(
 				text,
-				ball.position.x - MeasureText(text, fontSize) / 2,
-				ball.position.y - 50 - ball.radius,
+				balls.position.x - MeasureText(text, fontSize) / 2,
+				balls.position.y - 50 - balls.radius,
 				fontSize,
 				WHITE
+
+
 			);
 
 			if (IsKeyPressed(KEY_UP))
@@ -158,18 +233,19 @@ int main()
 				PlaceBricks(bricks);
 				active = true;
 				std::cout << "Start" << std::endl;
+				ball.push_back({ balls.color, balls.radius, balls.position, balls.direction });
+
 			}
 		}
 
-
+		
 
 
 		paddle.Draw();
-		ball.Draw();
 		// std::cout << paddle.paddlePosition.x << paddle.paddlePosition.y << std::endl;
 
 		EndDrawing();
 	}
 
-	CloseWindow();
+	    CloseWindow();
 }
