@@ -138,8 +138,8 @@ void PlaceBricks(Bricks& bricks)
 				bricks.active
 				});
 
-			brick.back().ballPowerup = GetRandomValue(1, 5) == 1 ? true : false;
-			brick.back().air = (i + j) % GetRandomValue(1, 7) == 0 ? true : false;
+			brick.back().ballPowerup = GetRandomValue(1, 4) == 1 ? true : false;
+			brick.back().air = (i + j) % GetRandomValue(2, 7) == 0 ? true : false;
 
 			if (brick.back().air)
 			{
