@@ -10,7 +10,7 @@ void UpdateBall(Bricks& bricks, Paddle& paddle, Sound& hit, bool& active, Balls&
 std::vector<Bricks> brick;
 std::vector<Balls> ball;
 
-void UpdateBrick(Balls& balls, Sound& hit, Paddle& paddle)
+void UpdateBrick(Balls& balls, Sound& hit, Paddle& paddle, bool& timerStarted, float& timer)
 {
 	for (auto& i : brick)
 	{
@@ -20,57 +20,102 @@ void UpdateBrick(Balls& balls, Sound& hit, Paddle& paddle)
 			{
 				if (!i.active) continue;
 
-				if (
-					j.position.x + j.radius >= i.position.x &&
-					j.position.x - j.radius <= i.position.x + i.width &&
-
-					j.position.y + j.radius >= i.position.y &&
-					j.position.y - j.radius <= i.position.y + i.height
-					)
+				if (i.solid && !i.ballPowerup && !i.expand)
 				{
+					if (
+						j.position.x + j.radius >= i.position.x &&
+						j.position.x - j.radius <= i.position.x + i.width &&
 
-					if (j.direction.y < 0)
+						j.position.y + j.radius >= i.position.y &&
+						j.position.y - j.radius <= i.position.y + i.height
+						)
 					{
-						j.position.y = i.position.y + i.height + j.radius;
+						if (j.direction.y < 0)
+						{
+							j.position.y = i.position.y + i.height + j.radius;
+						}
+						else if (j.direction.y > 0)
+						{
+							j.position.y = i.position.y - j.radius;
+						}
+
+						j.direction.y *= -1;
+
+						std::cout << "Hit brick" << std::endl;
+						PlaySound(hit);
+
+
 					}
-					else if (j.direction.y > 0)
-					{
-						j.position.y = i.position.y - j.radius;
-					}
+				}
+				else
+				{
+					if (
+						j.position.x + j.radius >= i.position.x &&
+						j.position.x - j.radius <= i.position.x + i.width &&
 
-					j.direction.y *= -1;
-
-					std::cout << "Hit brick" << std::endl;
-					PlaySound(hit);
-					i.active = false;
-
-					if (i.ballPowerup)
+						j.position.y + j.radius >= i.position.y &&
+						j.position.y - j.radius <= i.position.y + i.height
+						)
 					{
 
-						ball.push_back({
-							j.color,
-							j.radius,
-							{ i.position.x + i.width / 2.0f, i.position.y + i.height / 2.0f },
+						if (j.direction.y < 0)
+						{
+							j.position.y = i.position.y + i.height + j.radius;
+						}
+						else if (j.direction.y > 0)
+						{
+							j.position.y = i.position.y - j.radius;
+						}
+
+						j.direction.y *= -1;
+
+						std::cout << "Hit brick" << std::endl;
+						PlaySound(hit);
+						i.active = false;
+
+						if (i.ballPowerup && ball.size() < 3) // 
+						{
+
+							ball.push_back({
+								j.color,
+								j.radius,
+								{ i.position.x + i.width / 2.0f, i.position.y + i.height / 2.0f },
+								{
+									j.direction.x,
+									j.direction.y
+								}
+								});
+						}
+
+
+
+
+						if (i.expand)
+						{
+							paddle.paddleWidth = 200.0f;
+							if (timerStarted)
 							{
-								j.direction.x,
-								j.direction.y
+								timer = 0.0f;
 							}
-							});
+							else
+							{
+								timerStarted = true;
+							}
+						}
+
+
+
+
 					}
-
-
-					break;
-
 				}
 			}
 		}
 	}
 }
 
-
 void DrawBrick()
 {
-	for (auto& i : brick)	
+	for (auto& i : brick)
 	{
 		if (i.active)
 		{
@@ -86,14 +131,48 @@ void DrawBrick()
 					i.position.y + i.height / 2,
 					i.height / 2 - 5,
 					{ 0, 0, 0, 80 }
-					);
+				);
 
 				// TraceLog(LOG_INFO, "Ball Pos: %f, %f", i.position.x + i.width / 2, i.position.y + i.height / 2);
 			}
-		}
-	}
+
+
+			if (i.expand && !i.ballPowerup)
+			{
+				float width = 50;
+				float height = 15;
+
+				DrawRectangleRounded(
+					{
+						i.position.x + (i.width / 2) - (width / 2),  // Centers horizontally
+						i.position.y + (i.height / 2) - (height / 2), // Centers vertically
+						width,
+						height
+					},
+					10.0f,
+					10,
+					{ 0, 0, 0, 80 }
+				);
+			}
+
+			if (i.solid)
+			{
+				DrawRectangleRounded(
+					{
+						i.position.x,
+						i.position.y,
+						i.width,
+						i.height
+					},
+					0.5f,
+					0,
+					{ 46, 255, 213, 255 }
+				);
+			}
+		} // FIXED: Added missing closing brace for if (i.active)
+	} // FIXED: Added missing closing brace for for (auto& i : brick)
 }
- 
+
 void PlaceBricks(Bricks& bricks)
 {
 	int ammountX = GetScreenWidth() / (bricks.width + bricks.padding);
@@ -111,7 +190,7 @@ void PlaceBricks(Bricks& bricks)
 		{
 			Vector2 position = {
 			startX / 2 + (bricks.padding + bricks.width) * j,
-		    startY + (bricks.padding + bricks.height) * i
+			startY + (bricks.padding + bricks.height) * i
 			};
 
 
@@ -138,8 +217,24 @@ void PlaceBricks(Bricks& bricks)
 				bricks.active
 				});
 
-			brick.back().ballPowerup = GetRandomValue(1, 4) == 1 ? true : false;
 			brick.back().air = (i + j) % GetRandomValue(2, 7) == 0 ? true : false;
+
+			brick.back().expand = GetRandomValue(1, 100) <= 10; // normal is 10
+			brick.back().ballPowerup = GetRandomValue(1, 100) <= 15; // normal is 15
+			brick.back().solid = GetRandomValue(1, 100) <= 20; // normal is 20
+
+			if (brick.back().solid && brick.back().ballPowerup)
+			{
+				brick.back().solid = false;
+			}
+			if (brick.back().solid && brick.back().expand)
+			{
+				brick.back().solid = false;
+			}
+			if (brick.back().solid && brick.back().air)
+			{
+				brick.back().solid = false;
+			}
 
 			if (brick.back().air)
 			{
@@ -171,6 +266,9 @@ int main()
 		balls.direction
 		});
 
+	float timer = 0.0f;
+	bool timerStarted = false;
+
 	while (!WindowShouldClose())
 	{
 
@@ -179,23 +277,30 @@ int main()
 		ClearBackground(BLACK);
 		DrawBrick();
 
-		 
+
 		if (active)
 		{
 			DrawBall(bricks, paddle, hit, active, balls);
 			UpdateBall(bricks, paddle, hit, active, balls);
 			paddle.Update();
-			UpdateBrick(balls, hit, paddle);
+			UpdateBrick(balls, hit, paddle, timerStarted, timer);
 
-			bool allDestroyed = std::none_of(
-				brick.begin(),
-				brick.end(),
-				[](const Bricks& b)
+			bool allDestroyed = std::none_of(brick.begin(), brick.end(), [](const Bricks& b) {
+				return (b.active && !b.solid);
+				});
+
+
+			if (timerStarted)
+			{
+				timer += GetFrameTime();
+
+				if (timer >= 5.0f)
 				{
-					return b.active;
+					timerStarted = false;
+					timer = 0.0f;
+					paddle.paddleWidth = 130.0f;
 				}
-
-			);
+			}
 
 
 
@@ -210,7 +315,7 @@ int main()
 				}
 			}
 
-			
+
 		}
 		else
 		{
@@ -228,6 +333,8 @@ int main()
 
 			);
 
+			paddle.paddleWidth = 130.0f;
+
 			if (IsKeyPressed(KEY_UP))
 			{
 				PlaceBricks(bricks);
@@ -238,7 +345,7 @@ int main()
 			}
 		}
 
-		
+
 
 
 		paddle.Draw();
@@ -247,5 +354,5 @@ int main()
 		EndDrawing();
 	}
 
-	    CloseWindow();
+	CloseWindow();
 }

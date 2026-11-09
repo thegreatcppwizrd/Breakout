@@ -13,6 +13,7 @@ struct Bricks
 	bool active = true;
 	bool ballPowerup = false;
 	bool air = false;
-
+	bool expand = false;
+	bool solid = false;
 };
 

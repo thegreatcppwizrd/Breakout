@@ -1,32 +1,29 @@
 cmake_minimum_required(VERSION 3.13)
-project(Breakout LANGUAGES C CXX) # Added C language support since Raylib/GLFW are written in C
+project(Breakout LANGUAGES C CXX) 
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Force CMake to generate the compilation database that IntelliSense engines read
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY
-    "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory("thirdParty/raylib-6.2")
 
-# Glob both .cpp AND header files so the IDE maps IntelliSense to them
+# Automatically scan and glob your source arrays
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/headers/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/headers/*.hpp"
 )
 
-add_executable(Breakout ${MY_SOURCES}  "src/ball.cpp")
+add_executable(Breakout ${MY_SOURCES})
 
-# FIX: Removed the malformed space and added escaped quotes \" so it compiles cleanly
+# FIXED: Wrapped the macro definition properly inside safe outer quotes
 target_compile_definitions(Breakout PUBLIC
-   RESOURCES_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/resources/\"
+   "RESOURCES_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/resources/\""
 )
 
-# Note: Changed to /include so you can write #include "headers/file.h"
 target_include_directories(Breakout PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 ) 
