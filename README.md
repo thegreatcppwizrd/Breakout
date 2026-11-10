@@ -21,7 +21,7 @@ A classic 2D Breakout clone built in modern C++ (C++17) utilizing the **Raylib**
 ## 🎮 How to Play
 - **Launch Game:** Press the `UP ARROW` key on the splash screen to generate the field and launch the primary ball tracking state.
 - **Movement:** Use horizontal navigational inputs to position the paddle under descending ball trajectories.
-- **Objective:** Deflect vectors upward to target breakable structures while avoiding bottom border boundaries. Avoid traps and clear elements to unlock higher high-scores!
+- **Objective:** Deflect vectors upward to target breakable structures while avoiding bottom border boundaries. 
 
 ---
 
